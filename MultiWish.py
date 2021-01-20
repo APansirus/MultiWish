@@ -3,7 +3,8 @@ from scipy.special import comb
 from copy import deepcopy
 
 
-def m_wishes(m, j):  # Entry for the last column of a q-matrix with m open wishes and m+2 fails, all open wishes used
+def m_wishes(m, j):  # Entry for the last column of a conditional-probability-matrix with m open wishes and m+2 fails, 
+    # all open wishes used
     w_two = (e1 * (a ** j * b ** (m - j) * c * comb(m, j, True) +
                    a ** (j + 1) * b ** (m - j - 1) * d * comb(m, j + 1, True) +
                    a ** j * b ** (m - j + 1) * comb(m + 1, j, True)) +
@@ -17,7 +18,7 @@ def m_wishes(m, j):  # Entry for the last column of a q-matrix with m open wishe
 
 
 def wish_stop(m, j):
-    # Entry for the second to second-to-last column of a q-matrix with m open wishes and m+2 fails,
+    # Entry for the second to second-to-last column of a conditional-probability-matrix with m open wishes and m+2 fails,
     # "stopped" wish-chains, stopped because of failures, so not all open wishes used
     # if j > 0:
     w_stop = (e1 * (a ** j * b ** (m - j) * c * comb(m, j, True) +
@@ -107,14 +108,33 @@ recommended, unless your computer is fast and has a big RAM - program not optimi
     e1 = b + c  # 367026    # 10
     f = y ** 3  # 100**3  #27
 
-    # matrix of conditional probabilities with  (number of rows) "open" wishes n and (number of columns) "fails" n+2,
-    # AND for all higher numbers of fails
-    # (if the casters cast ideally, the number of fails has to be higher than the number of open wishes)
-    cond_prob2 = [[[0 for i0 in range(n + 2)] for j0 in range(n + 4)] for k0 in range(n + 1)]
-
-    # matrices of the exact dividends of the probabilities for a certain result with m casters,
-    # (0 to m) open wishes and (0 to m) fails
+    # n matrices for n casters, of the exact dividends of the probabilities for a certain result with m casters,
+    # (0 to m) "open" (= unused) wishes and (0 to m) "fails" (= number of casters unable to ever cast Wish again),
+    # open Wishes are counted in the column number, fails in the row number;
+    # for example, after the first caster cast their Wish, there is one open Wish (their Simulacrum),
+    # and either 0 (2/3 chance) or 1 (1/3 chance) fail(s)
     probabilities_dividend = [[[0 for i1 in range(n + 1)] for j1 in range(n + 1)] for k1 in range(n)]
+
+    # matrix of conditional probabilities where the column-number denotes how much the number of "open" Wishes
+    # changes after the next caster is through, from +1 to -(all the open Wishes)
+    # and where the row-number denotes how the number of "fails" changes after the next caster is through,
+    # from + 1 to -(number of open Wishes + 2)
+    # AND for all higher numbers of fails;
+    # (if the casters cast ideally, the number of fails has to be higher than the number of open wishes)
+    # for example, after the first caster cast their Wish, there is one conditional-probability-matrix for the condition
+    # of 1 fail and 1 open Wish, and this matrix describes how the probabilities shift for two casters, meaning:
+    # the number of open Wishes could shift -1 down to 0 (if the first caster regains their  ability to cast, has to use
+    # both their Wishes, and the second caster has to use both their Wishes, too), could shift 0 and stay a 1 open Wish
+    # (if either the first or the second caster have to use both their Wishes), or could shift +1 up to 2 (if the second
+    # caster gives the first caster back their ability to cast Wish with their first Wish);
+    # the number of "fails" could shift -1 down to 0, could stay at 1 (if the second caster gives the first 2 rerolls
+    # with advantage and both fail, or if the second caster loses his ability to cast Wish again ("fails"), but enables
+    # the first caster to cast Wish again, and the same happens again to the first caster and then again to the second
+    # caster, or some other variations), or +1 up to 2 (if the second caster suffers stress on his first Wish and the
+    # reroll for the first caster is bad, too (1/27 chance on top of the original 1/3 chance));
+    # this example is for a different conditional-probability matrix (cond-prob0[1], actually), since the conditional-
+    # probability-matrix for 1 open wishes and 3 fails (cond_prob2[1]) doesn't come up until there were 3 casters
+    cond_prob2 = [[[0 for i0 in range(n + 2)] for j0 in range(n + 4)] for k0 in range(n + 1)]
 
     # first probability matrix input manually
     probabilities_dividend[0][0][1] = y - x
